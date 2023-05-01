@@ -29,3 +29,5 @@ tic-tac-toe-ui/node_modules
 .idea
 mvnw
 mvnw.cmd
+node
+tic-tac-toe-ui/build
