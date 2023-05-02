@@ -1,6 +1,5 @@
 package com.vish.game.tictaktoe.service;
 
-import com.vish.game.tictaktoe.UserCache;
 import com.vish.game.tictaktoe.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,70 +8,53 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.util.*;
 
+import static com.vish.game.tictaktoe.util.GameStateHelper.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GameService {
-
-    private final UserCache userCache;
     final private BroadCastService broadCastService;
-
-    // TODO maintain match pool as well
-    // TODO autoregister player not registered
+    final private UserService userService;
     private final Map<String, GameBoard> activeGame = new HashMap<>();
-
-    private final List<List<Integer>> winningIndices = List.of(List.of(0,1,2), List.of(3,4,5), List.of(6,7,8),
-            List.of(0,3,6), List.of(1,4,7), List.of(2,5,8), List.of(0,4,8), List.of(2,4,6));
 
     public Optional<GameStepDTO> startGame(GameStarterDTO gameStarterConfig) {
         String userId = gameStarterConfig.getUserId();
         String opponentId = gameStarterConfig.getOpponentId();
         String roomId = gameStarterConfig.getRoomId();
-        log.info("Starting game of user ({}){} with opponent ({}){} ", userCache.get(userId), userId,
-                userCache.get(opponentId), opponentId);
+        log.info("Starting game of user ({}){} with opponent ({}){} ", userService.getName(userId), userId,
+                userService.getName(opponentId), opponentId);
+
         String gameKey = generateKey(userId, opponentId);
+        GameBoard board = getGameBoard(userId, opponentId, roomId, gameKey);
 
-        GameBoard board;
-
-        if(activeGame.containsKey(gameKey)) {
-            log.info("game already existing for user {} with opponent {}", userId, opponentId);
-            board = activeGame.get(gameKey);
-        } else {
-            board = new GameBoard(Integer.parseInt(roomId), userId);
-            activeGame.put(gameKey, board);
-        }
-        return Optional.of(GameStepDTO.builder(userCache.get(userId),
+        return Optional.of(GameStepDTO.builder(userService.getName(userId),
                         userId,
-                        userCache.get(opponentId),
+                        userService.getName(opponentId),
                         opponentId)
                         .board(board)
                 .build());
     }
 
+    private GameBoard getGameBoard(String userId, String opponentId, String roomId, String gameKey) {
+        if(activeGame.containsKey(gameKey)) {
+            log.debug("Game already existing for user {} with opponent {}", userId, opponentId);
+            return activeGame.get(gameKey);
+        } else {
+            GameBoard board = new GameBoard(Integer.parseInt(roomId), userId);
+            activeGame.put(gameKey, board);
+            return board;
+        }
+    }
+
     public Optional<GameStepDTO> step(final GameStepDTO gameStepDTO,
                                       final Principal principal) {
-        //TODO: check for valid player and opponent id
         String playerName = gameStepDTO.getPlayerName();
         String playerId = gameStepDTO.getPlayerId();
         String opponentName = gameStepDTO.getOpponentName();
         String opponentId = gameStepDTO.getOpponentId();
-        String activePlayer = gameStepDTO.getBoard().getActivePlayerId();
 
-        if(!Objects.equals(principal.getName(), playerId)) {
-            log.warn("Incorrect state of game board for user : {}", principal.getName());
-            // TODO : correct the state of game or disconnect user
-            return Optional.of(gameStepDTO);
-        }
-
-        if(!Objects.equals(playerId, activePlayer)) {
-            log.warn("Got step request from non-active player : {}", playerId);
-            // TODO : correct the state of game or disconnect user
-            return Optional.of(gameStepDTO);
-        }
-
-        if(!isGameStepValid(gameStepDTO)) {
-            log.warn("Game step is not valid for player : {}", playerId);
-            // TODO : correct the state of game or disconnect user
+        if (!isGameStateValid(gameStepDTO, principal)){
             return Optional.of(gameStepDTO);
         }
 
@@ -81,72 +63,32 @@ public class GameService {
         board.setActivePlayerId(opponentId);
 
         activeGame.put(gameKey, board);
-
-        GameStepDTO playerGameState = GameStepDTO
-                .builder(playerName, playerId, opponentName, opponentId)
-                .board(board)
-                .build();
-
-        GameStepDTO opponentGameState = GameStepDTO
-                .builder(opponentName, opponentId, playerName, playerId)
-                .board(board)
-                .build();
-
-        if(isGameCompleted(gameStepDTO)) {
-            log.info(" {} won the game", gameStepDTO.getWinningPlayer());
-            playerGameState.setWinningPlayer(gameStepDTO.getWinningPlayer());
-            opponentGameState.setWinningPlayer(gameStepDTO.getWinningPlayer());
-        }
-
-        broadCastService.updateUser(playerId, playerGameState);
-        broadCastService.updateUser(opponentId, opponentGameState);
+        GameStepDTO playerGameState = updateGameStateAndBroadcast(gameStepDTO, playerName, playerId, opponentName, opponentId, board);
 
         return Optional.of(playerGameState);
     }
+    private GameStepDTO updateGameStateAndBroadcast(GameStepDTO gameStepDTO, String playerName, String playerId,
+                                                    String opponentName, String opponentId, GameBoard board) {
+        Optional<String> winningPlayerIdOptional = getWinningPlayerId(gameStepDTO);
 
-    private boolean isGameCompleted(GameStepDTO gameStepDTO) {
-        List<TickSpace> tickSpaces = gameStepDTO.getBoard().getTickSpaces();
-
-        List<Integer> crossedIds = tickSpaces.stream()
-                .filter(tick -> tick.isClicked())
-                .filter(tick -> tick.isCrossed())
-                .map(tick -> tick.getId())
-                .toList();
-
-        if(isWinningPattern(crossedIds)) {
-            gameStepDTO.setWinningPlayer(gameStepDTO.getCrossPlayerId());
-            return true;
-        }
-
-        List<Integer> circleIds = tickSpaces.stream()
-                .filter(tick -> tick.isClicked())
-                .filter(tick -> !tick.isCrossed())
-                .map(tick -> tick.getId())
-                .toList();
-
-        if(isWinningPattern(circleIds)) {
-            gameStepDTO.setWinningPlayer(gameStepDTO.getCirclePlayerId());
-            return true;
-        }
-        return false;
+        broadCastService.createDTOAndBroadcast(board, opponentName, opponentId, playerName, playerId,
+                winningPlayerIdOptional);
+        return broadCastService.createDTOAndBroadcast(board, playerName, playerId, opponentName,
+                opponentId, winningPlayerIdOptional);
     }
 
+    public void attemptToStartGame(String userId) {
+        Optional<String> opponentIdOptional = userService.getUserFromWaitingPool();
 
-    private boolean isWinningPattern(List<Integer> ids) {
-        return winningIndices.stream().anyMatch(ids::containsAll);
-    }
-
-    // TODO
-    private boolean isGameStepValid(GameStepDTO gameStepDTO) {
-        log.debug("game step : {}", gameStepDTO);
-        return true;
-    }
-
-    private String generateKey(String username, String opponentName) {
-        if(username.compareTo(opponentName) >0 ) {
-            return username + "|" + opponentName;
+        if(opponentIdOptional.isPresent()) {
+            String opponentId = opponentIdOptional.get();
+            userService.removeUserFromPool(opponentId);
+            GameStarterDTO gameStarterDTO = new GameStarterDTO(userId, opponentId,
+                    String.valueOf(userService.getNextRoomId()));
+            Optional<GameStepDTO> gameStepOptional =  startGame(gameStarterDTO);
+            broadCastService.startGame(gameStepOptional);
         } else {
-            return opponentName + "|" + username;
+            userService.extendWaitingPool(userId);
         }
     }
 }

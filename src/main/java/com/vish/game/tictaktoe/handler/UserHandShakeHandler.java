@@ -1,7 +1,7 @@
 package com.vish.game.tictaktoe.handler;
 
 import com.sun.security.auth.UserPrincipal;
-import com.vish.game.tictaktoe.UserCache;
+import com.vish.game.tictaktoe.util.UserCache;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
@@ -25,7 +25,7 @@ public class UserHandShakeHandler extends DefaultHandshakeHandler {
                                       final WebSocketHandler wsHandler,
                                       final Map<String, Object> attributes) {
         final String userId = UUID.randomUUID().toString();
-        log.info("creating new userId for anonymous user : {}", userId);
+        log.debug("creating new userId for anonymous user : {}", userId);
         userCache.update(userId, "");
         return new UserPrincipal(userId);
     }

@@ -1,5 +1,7 @@
 package com.vish.game.tictaktoe.service;
 
+import com.vish.game.tictaktoe.config.WebSocketProperties;
+import com.vish.game.tictaktoe.model.GameBoard;
 import com.vish.game.tictaktoe.model.GameStepDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import java.util.Optional;
 public class BroadCastService {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketProperties webSocketProps;
 
     public void startGame(Optional<GameStepDTO> gameStepOptional) {
         if(gameStepOptional.isPresent()) {
@@ -27,13 +30,25 @@ public class BroadCastService {
         }
     }
 
-    public void startGame(String userId, GameStepDTO gameStepDTO) {
-        log.info("Sending message to userID : {} to start the game {}", userId, gameStepDTO);
-        messagingTemplate.convertAndSendToUser(userId, "/topic/game-start", gameStepDTO);
+    public GameStepDTO createDTOAndBroadcast(GameBoard board, String playerName, String playerId, String opponentName,
+                                             String opponentId, Optional<String> winningPlayerIdOptional) {
+        GameStepDTO playerGameState = GameStepDTO
+                .builder(playerName, playerId, opponentName, opponentId)
+                .board(board)
+                .build();
+
+        winningPlayerIdOptional.ifPresent(playerGameState::setWinningPlayer);
+        updateUser(playerId, playerGameState);
+        return playerGameState;
     }
 
-    public void updateUser(String userId, GameStepDTO gameStepDTO) {
-        log.info("Sending message to userID : {} to step the game {}", userId, gameStepDTO);
-        messagingTemplate.convertAndSendToUser(userId, "/topic/game-ws", gameStepDTO);
+    private void startGame(String userId, GameStepDTO gameStepDTO) {
+        log.debug("Sending message to userID : {} to start the game {}", userId, gameStepDTO);
+        messagingTemplate.convertAndSendToUser(userId, webSocketProps.getGameStartTopic(), gameStepDTO);
+    }
+
+    private void updateUser(String userId, GameStepDTO gameStepDTO) {
+        log.debug("Sending message to userID : {} to step the game {}", userId, gameStepDTO);
+        messagingTemplate.convertAndSendToUser(userId, webSocketProps.getGameStepTopic(), gameStepDTO);
     }
 }

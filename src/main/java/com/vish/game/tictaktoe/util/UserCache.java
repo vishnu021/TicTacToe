@@ -1,4 +1,4 @@
-package com.vish.game.tictaktoe;
+package com.vish.game.tictaktoe.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +49,7 @@ public class UserCache {
     public void update(String userId, String username) {
         userCache.put(userId, username);
     }
+
     public String get(String userId) {
         return userCache.getIfPresent(userId);
     }

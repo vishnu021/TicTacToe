@@ -1,6 +1,6 @@
 package com.vish.game.tictaktoe.handler;
 
-import com.vish.game.tictaktoe.UserCache;
+import com.vish.game.tictaktoe.util.UserCache;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -13,18 +13,19 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Component
 @AllArgsConstructor
 public class UserConnectionEventListener {
+
     private final UserCache userCache;
 
     @EventListener
     public void handleWebSocketConnectListener(final SessionConnectedEvent event) {
-        log.info("new user connected : {}", event.getUser().getName());
+        log.debug("new user connected : {}", event.getUser().getName());
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(final SessionDisconnectEvent event) {
         final StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String username = headerAccessor.getUser().getName();
-        log.info("user {} disconnected", username);
+        log.debug("user {} disconnected", username);
         userCache.delete(username);
     }
 }

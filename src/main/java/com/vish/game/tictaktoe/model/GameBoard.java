@@ -19,13 +19,13 @@ public class GameBoard {
 
     private int markedTicks;
 
-    public GameBoard(Integer roomId, String player1) {
+    public GameBoard(Integer roomId, String userId) {
         this.roomId = roomId;
-        this.tickSpaces = IntStream.rangeClosed(0,8).boxed()
+        this.tickSpaces = IntStream.rangeClosed(0, 8).boxed()
                 .map(i -> new TickSpace(i, false, false))
                 .collect(Collectors.toList());
-        this.crossPlayerId = player1;
-        this.activePlayerId = player1;
+        this.crossPlayerId = userId;
+        this.activePlayerId = userId;
         this.markedTicks = 0;
     }
 }
