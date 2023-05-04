@@ -18,7 +18,7 @@ public class BroadCastService {
     private final SimpMessagingTemplate messagingTemplate;
     private final WebSocketProperties webSocketProps;
 
-    public void startGame(Optional<GameStepDTO> gameStepOptional) {
+    public void startGameAndBroadcast(Optional<GameStepDTO> gameStepOptional) {
         if(gameStepOptional.isPresent()) {
             GameStepDTO gameStep = gameStepOptional.get();
             startGame(gameStep.getPlayerId(), gameStep);

@@ -17,19 +17,17 @@ import java.security.Principal;
 @AllArgsConstructor
 public class GameWebSockerController {
 
-    final UserService userService;
-    final GameService gameService;
+    private final UserService userService;
+    private final GameService gameService;
 
     @MessageMapping("/register")
     @SendToUser("/topic/response")
     public UserRegisterDTO register(final UserRegisterDTO userRegisterDTO,
                                                  final Principal principal) {
-
         log.debug("Request to register from anonymous user {}, DTO : {}",
                 principal.getName(), userRegisterDTO);
         userService.register(principal.getName(), userRegisterDTO.getUser());
         gameService.attemptToStartGame(principal.getName());
-
         return userRegisterDTO;
     }
 

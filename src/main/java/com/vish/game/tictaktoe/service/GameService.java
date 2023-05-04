@@ -67,6 +67,7 @@ public class GameService {
 
         return Optional.of(playerGameState);
     }
+
     private GameStepDTO updateGameStateAndBroadcast(GameStepDTO gameStepDTO, String playerName, String playerId,
                                                     String opponentName, String opponentId, GameBoard board) {
         Optional<String> winningPlayerIdOptional = getWinningPlayerId(gameStepDTO);
@@ -86,7 +87,7 @@ public class GameService {
             GameStarterDTO gameStarterDTO = new GameStarterDTO(userId, opponentId,
                     String.valueOf(userService.getNextRoomId()));
             Optional<GameStepDTO> gameStepOptional =  startGame(gameStarterDTO);
-            broadCastService.startGame(gameStepOptional);
+            broadCastService.startGameAndBroadcast(gameStepOptional);
         } else {
             userService.extendWaitingPool(userId);
         }
