@@ -4,6 +4,7 @@ import com.vish.game.tictaktoe.util.UserCache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -27,6 +28,10 @@ public class UserService {
 
     public Optional<String> getUserFromWaitingPool() {
         return userCache.getUserFromWaitingPool();
+    }
+
+    public Map<String, String> getAllUsersInPool() {
+        return userCache.getAllUsersInPool();
     }
 
     public void removeUserFromPool(String userId) {

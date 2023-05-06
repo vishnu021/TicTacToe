@@ -2,14 +2,28 @@ import React from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faCircle, faSquare, faTimes} from '@fortawesome/free-solid-svg-icons'
 
-function TickSpace({tickSpace}) {
+function TickSpace({tickSpace, isCrossPlayer}) {
+
+    const getCircleColor = () => {
+        if(isCrossPlayer()) {
+            return "opponent"
+        }
+        return "player";
+    }
+
+    const getCrossColor = () => {
+        if(isCrossPlayer()) {
+            return "player"
+        }
+        return "opponent";
+    }
 
     const getSymbol = () => {
         const {id, crossed, clicked} = tickSpace;
         if(clicked) {
             return crossed ?
-                <FontAwesomeIcon icon={faTimes} size="2x"/>:
-                <FontAwesomeIcon icon={faCircle} size="2x"/>;
+                <FontAwesomeIcon className={getCrossColor()} icon={faTimes} size="2x"/>:
+                <FontAwesomeIcon className={getCircleColor()} icon={faCircle} size="2x"/>;
         }
         return <FontAwesomeIcon icon={faSquare} style={{ color: 'transparent'}} size="2x" />;
     }
@@ -17,7 +31,7 @@ function TickSpace({tickSpace}) {
     return (
         <div
             style={{ width: '100%', height: '100%', padding: 0, border: 'none' }}
-            className="m-3" >
+            className="p-4" >
             {getSymbol()}
             </div>
     );

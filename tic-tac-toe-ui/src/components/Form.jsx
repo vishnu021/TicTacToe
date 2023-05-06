@@ -17,13 +17,13 @@ function Form({ userName, handleChange, handleCheckChange, errors, formValidator
 
     return (
         <form onSubmit={handleSubmit}
-              className="game-font"
-              style={{fontSize: 20}}>
-            <table style={{tableLayout: "fixed", width: "50%"}}>
+              className="game-font p-4"
+              style={{fontSize: 18}}>
+            <table className="table tick-table">
                 <tbody>
                 <tr>
                     <td style={{textAlign: "center"}}>
-                        <p className="m-2 game-font text-black p-4" style={{fontSize: 30}}>
+                        <p className="text-black table-header" style={{fontSize: 25}}>
                             Welcome to tic tac toe
                         </p>
                     </td>
@@ -57,7 +57,7 @@ function Form({ userName, handleChange, handleCheckChange, errors, formValidator
                             disabled={formValidator()}
                             type="submit"
                             value="Play"
-                            className="btn btn-primary m-2"/>
+                            className="btn btn-primary m-2 px-4 py-2"/>
                     </td>
                 </tr>
                 </tbody>

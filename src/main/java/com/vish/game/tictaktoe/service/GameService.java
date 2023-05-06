@@ -92,4 +92,8 @@ public class GameService {
             userService.extendWaitingPool(userId);
         }
     }
+
+    public Set<String> getAllActiveGames() {
+        return activeGame.keySet();
+    }
 }

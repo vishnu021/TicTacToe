@@ -1,12 +1,29 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Form from "./Form";
 import Joi from "joi-browser";
 import Cookies from 'js-cookie';
+import websocket from "../services/webSocketService";
+import { useNavigate } from 'react-router-dom';
+import {StompContext} from "./parent";
 
-function WelcomePageForm({setUserName, initiateWebSocket}) {
+function WelcomePageForm() {
 
     const [formErrors, setFormErrors] = useState({})
     const [userDetails, setUserDetails] = useState({userName: ""});
+    const { stompClient, setStompClient } = useContext(StompContext);
+    const navigate = useNavigate();
+
+    const registerAndNavigate = (userName) => {
+        console.log("client", stompClient);
+        websocket.register(stompClient, userName);
+        const payload = { state: { userName: userName } };
+        navigate('/pool', payload);
+    };
+
+    const connectToWebSocket = async (userName) => {
+        console.log("connect to web socket called with username : ", userName);
+        registerAndNavigate(userName);
+    };
 
     useEffect(() => {
         const myCookieValue = Cookies.get('userName');
@@ -51,28 +68,28 @@ function WelcomePageForm({setUserName, initiateWebSocket}) {
             errors[item.path[0]] = item.message;
         return errors;
     }
+
     const showErrors = (errors) => {
         setFormErrors(errors ? errors : {});
     }
 
-    const submitToServer = () => {
+    const submitToServer = async () => {
         Cookies.set('userName', userDetails.userName);
-        setUserName(userDetails.userName);
-        initiateWebSocket(userDetails.userName);
+        console.log("calling set username", userDetails.userName);
+        console.log("setting username", userDetails.userName);
+        await connectToWebSocket(userDetails.userName);
     }
 
     return (
-        <div className="row">
-            <div className="col-md-8 offset-md-3 col-sm-12">
-                <Form
-                    userName={userDetails.userName}
-                    handleChange={handleChange}
-                    errors={formErrors}
-                    formValidator={validate}
-                    showErrors={showErrors}
-                    submitToServer={submitToServer}
-                />
-            </div>
+        <div className="col-md-4 col-sm-12">
+            <Form
+                userName={userDetails.userName}
+                handleChange={handleChange}
+                errors={formErrors}
+                formValidator={validate}
+                showErrors={showErrors}
+                submitToServer={submitToServer}
+            />
         </div>
     );
 }

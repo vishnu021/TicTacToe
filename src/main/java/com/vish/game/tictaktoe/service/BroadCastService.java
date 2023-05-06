@@ -20,6 +20,13 @@ public class BroadCastService {
 
     public void startGameAndBroadcast(Optional<GameStepDTO> gameStepOptional) {
         if(gameStepOptional.isPresent()) {
+            // Adding sleep to give time to front end to load components.
+            // TODO add a queuing system
+            try {
+                Thread.sleep(2500);
+            } catch (InterruptedException e) {
+                log.error("Failed to sleep", e);
+            }
             GameStepDTO gameStep = gameStepOptional.get();
             startGame(gameStep.getPlayerId(), gameStep);
             gameStep = GameStepDTO.builder(gameStep.getOpponentName(),

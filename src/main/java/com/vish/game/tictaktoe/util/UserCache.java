@@ -5,9 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -44,6 +43,10 @@ public class UserCache {
             return waitingPool.stream().findAny();
         }
         return Optional.empty();
+    }
+
+    public Map<String, String> getAllUsersInPool() {
+        return waitingPool.stream().collect(Collectors.toMap(x -> x, this::get));
     }
 
     public void update(String userId, String username) {

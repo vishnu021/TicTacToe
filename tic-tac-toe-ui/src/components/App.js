@@ -4,17 +4,23 @@ import NotFound from "./notFound";
 import {Navigate, Route, Routes} from 'react-router-dom';
 import React from 'react';
 import ParentComponent from "./parentComponent";
+import WelcomePageForm from "./welcomePageForm";
+import WaitingPool from "./waitingPool";
+import Parent from "./parent";
+
+
 function App() {
     return(
-        <div className="bg-light" style={{backgroundColor: "lightgrey"}}>
-            <div className="content">
+        <div className="content">
+            <Parent>
                 <Routes>
-                    <Route path="/" element={<ParentComponent />}/>
+                    <Route path="/" element={<WelcomePageForm />}/>
+                    <Route path="/pool" element={<WaitingPool />}/>
                     <Route path="/play/:pageId" element={<ParentComponent />}/>
                     <Route path='/not-found' element={<NotFound/>} />
                     <Route path="*" element={<Navigate to ="/not-found" />}/>
                 </Routes>
-            </div>
+            </Parent>
         </div>
   );
 }

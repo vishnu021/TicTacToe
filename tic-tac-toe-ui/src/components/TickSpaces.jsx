@@ -1,26 +1,23 @@
 import React from 'react';
 import TickSpace from "./TickSpace";
 
-function TickSpaces({tickSpaces, getTickSpaceStyle, handleClick}) {
-
+function TickSpaces({tickSpaces, handleClick, isCrossPlayer}) {
 
     const getTickSpaces = () => {
-        console.log("tickSpaces : ", tickSpaces);
-
         const entries = tickSpaces.map(tickSpace =>{
             return  <td
                 key={tickSpace.id}
-                style={getTickSpaceStyle()}
+                style={{ borderColor: 'black', borderWidth: '3px', textAlign: 'center', verticalAlign: 'middle'}}
                 onClick={() => handleClick(tickSpace)}
             >
                 <TickSpace
-                    style={{ width: '100%', height: '100%', padding: 0, border: 'none', background: 'transparent' }}
+                    style={{ background: 'transparent' }}
                     key={tickSpace.id}
                     tickSpace={tickSpace}
+                    isCrossPlayer={isCrossPlayer}
                 />
             </td>;
         });
-
 
         const row = entries.reduce((acc, curr, i) => {
             if(i%3===0) {

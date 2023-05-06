@@ -12,3 +12,48 @@
 .App-link {
   color: #61dafb;
 }
+
+.active-player {
+  cursor: pointer;
+  border-color: #6c757d;
+  border-width: 3px;
+}
+
+.inactive-player {
+  border-color: #000000;
+  border-width: 3px;
+}
+
+
+.player {
+  color: blue;
+}
+
+.opponent {
+  color: red;
+}
+
+.game-font {
+  font-family: cursive;
+}
+
+.table {
+  table-layout: fixed;
+  width: 100%
+}
+
+.tick-table {
+  table-layout: fixed;
+  width: 100%
+}
+
+.content {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #cfe2ef;
+}
