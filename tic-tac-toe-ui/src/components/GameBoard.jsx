@@ -3,6 +3,7 @@ import websocket from '../services/webSocketService'
 import TickSpaces from "./TickSpaces";
 import CelebrationAnimation from "./CelebrationAnimation";
 import {StompContext} from "./parent";
+import {useParams} from "react-router-dom";
 
 function GameBoard({gameDetails}) {
     const [playerName, setPlayerName] = useState("");
@@ -14,7 +15,9 @@ function GameBoard({gameDetails}) {
     const [opponentId, setOpponentId] = useState("");
     const [gameActive, setGameActive] = useState(true);
     const [winningPlayer, setWinningPlayer] = useState(null);
-    const { stompClient, setStompClient } = useContext(StompContext);
+    const {stompClient, setStompClient } = useContext(StompContext);
+    const { pageId } = useParams();
+
 
     const parseGameDetails = (gameDetails) => {
         const { playerName, playerId, opponentName, opponentId, board, winningPlayer } = gameDetails;
@@ -39,7 +42,7 @@ function GameBoard({gameDetails}) {
             "opponentName": opponentName,
             "opponentId": opponentId,
             "board": {
-                "roomId": 0,
+                "roomId": pageId,
                 "tickSpaces": tickSpaces,
                 "crossPlayerId": crossPlayerId,
                 "activePlayerId": activePlayerId
@@ -70,14 +73,6 @@ function GameBoard({gameDetails}) {
         }
     }
 
-    // const getTickSpaceStyle = () => {
-    //     console.log(`playerId : ${playerId}, active player : ${activePlayerId}`);
-    //     if(activePlayerId===playerId) {
-    //         return {cursor: 'pointer', borderColor: '#6c757d', borderWidth: '3px'};
-    //     } else {
-    //         return {borderColor: '#6c757d', borderWidth: '3px'};
-    //     }
-    // }
 
     useEffect(() => {
         parseGameDetails(gameDetails);
@@ -118,6 +113,7 @@ function GameBoard({gameDetails}) {
                     duration={5000}
                     numberOfParticles={250} />
                 <h2 className="m-3" style={{textAlign: "center"}}>TIC TAC TOE</h2>
+                <p style={{textAlign: "center"}}>room : {pageId}</p>
                 <div style={{textAlign: "left"}} className="opponent m-2">
                     {opponentName}
                 </div>
