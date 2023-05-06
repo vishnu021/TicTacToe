@@ -12,7 +12,6 @@ function ParentComponent(props) {
 
 
     const handleGameStart = (gameDetails) => {
-        console.log("Got response", gameDetails);
         setGameDetails(gameDetails);
         setGameStarted(true);
     }

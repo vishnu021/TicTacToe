@@ -30,7 +30,7 @@ function GameBoard({stompClient, gameDetails}) {
         return playerId===crossPlayerId;
     }
 
-    const sendNextStep = () => {
+    const sendNextStep = async () => {
         const stepPayload = {
             "playerName": playerName,
             "playerId": playerId,
@@ -43,7 +43,6 @@ function GameBoard({stompClient, gameDetails}) {
                 "activePlayerId": activePlayerId
             }
         }
-        console.log("sending next step", stepPayload);
         stompClient.send('/app/step', {}, JSON.stringify(stepPayload));
     }
 
@@ -56,7 +55,6 @@ function GameBoard({stompClient, gameDetails}) {
                 boardTickSpaces[index].crossed = isCrossTick();
                 sendNextStep();
             }
-            console.log("updating tickspaces in handleClick to ", boardTickSpaces);
             setTickSpaces(boardTickSpaces)
         }
     }
@@ -104,7 +102,7 @@ function GameBoard({stompClient, gameDetails}) {
                 <CelebrationAnimation
                     animationStarted={winningPlayer===playerId}
                     duration={5000}
-                    numberOfParticles={500} />
+                    numberOfParticles={250} />
                 <h2 className="m-3">TIC TAC TOE</h2>
                 <div style={{textAlign: "left", color: "red"}} className="m-2">
                     {opponentName}

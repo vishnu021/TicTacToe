@@ -1,11 +1,20 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Form from "./Form";
 import Joi from "joi-browser";
+import Cookies from 'js-cookie';
 
 function WelcomePageForm({setUserName, initiateWebSocket}) {
 
     const [formErrors, setFormErrors] = useState({})
     const [userDetails, setUserDetails] = useState({userName: ""});
+
+    useEffect(() => {
+        const myCookieValue = Cookies.get('userName');
+        if(myCookieValue) {
+            setUserDetails({userName: myCookieValue});
+        }
+        return () => {};
+    }, []);
 
     const formSchema = {
         userName: Joi.string().min(3).required().label('Name')
@@ -19,7 +28,7 @@ function WelcomePageForm({setUserName, initiateWebSocket}) {
     }
 
     const handleChange = ({currentTarget:input}) => {
-        const errors = {...formErrors}
+        const errors = {...formErrors};
         const errorMessage = validateProperty(input);
         if(errorMessage)
             errors[input.name] = errorMessage;
@@ -29,13 +38,13 @@ function WelcomePageForm({setUserName, initiateWebSocket}) {
         const userData = {...userDetails}
         userData[input.name] = input.value;
 
-        setFormErrors(errors)
-        setUserDetails(userData)
+        setFormErrors(errors);
+        setUserDetails(userData);
     }
 
     const validate = () => {
-        const options = { abortEarly: true }
-        const {error} = Joi.validate(userDetails, formSchema, options)
+        const options = { abortEarly: true };
+        const {error} = Joi.validate(userDetails, formSchema, options);
         if(!error)  return null;
         const errors = {};
         for(let item of error.details)
@@ -47,7 +56,7 @@ function WelcomePageForm({setUserName, initiateWebSocket}) {
     }
 
     const submitToServer = () => {
-        console.log("Setting user name to ", userDetails.userName);
+        Cookies.set('userName', userDetails.userName);
         setUserName(userDetails.userName);
         initiateWebSocket(userDetails.userName);
     }

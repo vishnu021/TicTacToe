@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import '../CelebrationAnimation.css';
+import '../styles/CelebrationAnimation.css';
 
 const CelebrationAnimation = ({ duration, numberOfParticles, animationStarted }) => {
 

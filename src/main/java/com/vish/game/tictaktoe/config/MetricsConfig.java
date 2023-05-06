@@ -1,4 +1,4 @@
-package com.vish.game.tictaktoe.metrics;
+package com.vish.game.tictaktoe.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;

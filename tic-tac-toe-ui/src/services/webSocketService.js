@@ -2,7 +2,7 @@ import {toast} from "react-toastify";
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
 
-const webSocketEndpoint = "http://localhost:8080/ws"
+const webSocketEndpoint = process.env.REACT_APP_API_URL;
 const subscriptionTopic = '/user/topic/game-ws'
 const startGameTopic = '/user/topic/game-start'
 
@@ -44,6 +44,7 @@ const registerNewUser = (client, userName) => {
         "createNewRoom": false
     };
     console.log("registering new user", gameStarterPayload);
+    console.log("registering new user endpoint", webSocketEndpoint);
     client.send('/app/register', {}, JSON.stringify(gameStarterPayload));
 }
 

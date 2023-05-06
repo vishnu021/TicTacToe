@@ -6,7 +6,7 @@ spring:
       static-locations: "classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/:"
 
 server:
-  port: 8080
+  port: 80
 
 ws:
   tick:
@@ -37,7 +37,7 @@ logging:
 
 # configs for actuator endpoints
 management:
-  server.port: 8080
+  server.port: ${server.port}
   endpoint:
     info.cache.time-to-live: 5s
     health:

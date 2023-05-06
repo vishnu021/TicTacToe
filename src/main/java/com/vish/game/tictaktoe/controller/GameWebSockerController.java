@@ -22,10 +22,8 @@ public class GameWebSockerController {
 
     @MessageMapping("/register")
     @SendToUser("/topic/response")
-    public UserRegisterDTO register(final UserRegisterDTO userRegisterDTO,
-                                                 final Principal principal) {
-        log.debug("Request to register from anonymous user {}, DTO : {}",
-                principal.getName(), userRegisterDTO);
+    public UserRegisterDTO register(final UserRegisterDTO userRegisterDTO, final Principal principal) {
+        log.debug("Request to register from anonymous user {}, DTO : {}", principal.getName(), userRegisterDTO);
         userService.register(principal.getName(), userRegisterDTO.getUser());
         gameService.attemptToStartGame(principal.getName());
         return userRegisterDTO;
@@ -33,11 +31,9 @@ public class GameWebSockerController {
 
     @MessageMapping("/step")
     @SendToUser("/topic/game-ws")
-    public GameStepDTO step(final GameStepDTO gameStepDTO,
-                            final Principal principal) {
+    public GameStepDTO step(final GameStepDTO gameStepDTO, final Principal principal) {
         log.debug("Request to step from user {}, DTO : {}", principal.getName(), gameStepDTO);
         gameService.step(gameStepDTO, principal);
         return gameStepDTO;
     }
-
 }
