@@ -3,7 +3,7 @@ import websocket from '../services/webSocketService'
 import TickSpaces from "./TickSpaces";
 import CelebrationAnimation from "./CelebrationAnimation";
 import {StompContext} from "./parent";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 
 function GameBoard({gameDetails}) {
     const [playerName, setPlayerName] = useState("");
@@ -17,6 +17,12 @@ function GameBoard({gameDetails}) {
     const [winningPlayer, setWinningPlayer] = useState(null);
     const {stompClient, setStompClient } = useContext(StompContext);
     const { pageId } = useParams();
+    const navigate = useNavigate();
+    const backToPool = () => {
+        websocket.register(stompClient, playerName);
+        const payload = { state: { userName: playerName } };
+        navigate('/pool', payload);
+    }
 
 
     const parseGameDetails = (gameDetails) => {
@@ -58,9 +64,9 @@ function GameBoard({gameDetails}) {
             if (!boardTickSpaces[index].clicked) {
                 boardTickSpaces[index].clicked = true;
                 boardTickSpaces[index].crossed = isCrossTick();
+                setTickSpaces(boardTickSpaces)
                 sendNextStep();
             }
-            setTickSpaces(boardTickSpaces)
         }
     }
 
@@ -99,11 +105,17 @@ function GameBoard({gameDetails}) {
     const getNameStyle = () => {
         const styles = {textAlign: "right"}
         if(playerId===activePlayerId) {
-            return {...styles,  fontSize: "20" }
+            return {...styles,  fontSize: "25", fontWeight: "bold"}
         }
         return styles;
     }
-    console.log("stomp client : ", stompClient)
+
+    const getGamePlayMessage = () => {
+        if(playerId===activePlayerId)
+        return "your turn ";
+        else return "";
+    }
+
     websocket.subscribeToGame(stompClient, gameStepHandler);
     return (
         <div className="row m-2 game-font">
@@ -125,7 +137,10 @@ function GameBoard({gameDetails}) {
                     />
                 </div>
                 <div className="player m-2" style={getNameStyle()}>
-                    {playerName}
+                    {getGamePlayMessage()} {playerName}
+                </div>
+                <div className="btn btn-danger" onClick={backToPool}>
+                    Back to wait pool
                 </div>
                 <div>
                     {getGameCompleteMessage()}

@@ -36,8 +36,12 @@ public class GameService {
                 .build());
     }
 
+    boolean isGameInProgress(GameBoard gameBoard) {
+        return gameBoard.getTickSpaces().stream().map(TickSpace::isClicked).toList().size() > 0;
+    }
+
     private GameBoard getGameBoard(String userId, String opponentId, String roomId, String gameKey) {
-        if(activeGame.containsKey(gameKey)) {
+        if(activeGame.containsKey(gameKey) && !isGameInProgress(activeGame.get(gameKey))) {
             log.debug("Game already existing for user {} with opponent {}", userId, opponentId);
             return activeGame.get(gameKey);
         } else {

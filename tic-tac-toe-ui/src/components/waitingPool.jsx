@@ -11,25 +11,20 @@ function WaitingPool(props) {
 
     const handleGameStart = (gameDetails) => {
         setGameDetails(gameDetails);
-        console.log("setting game details game room id : ", gameDetails.board.roomId)
         const {board} = gameDetails;
         navigate(`/play/${board.roomId}`, {state: gameDetails});
     }
 
     useEffect(() => {
             if(!location || !location.state) {
-                console.log("Redirect to welcome page as location is", JSON.stringify(location));
                 const timeoutId = setTimeout(() => {
                     navigate('/');
-                }, 2000);
+                }, 500);
                 return;
             }
 
             if(location.state && location.state.userName) {
-
                 const { userName } = location.state;
-                console.log("entered waiting pool with props : ", userName);
-                console.log("entered waiting pool with stompClient : ", stompClient);
                 websocket.subscribe(stompClient, handleGameStart);
             }
         }

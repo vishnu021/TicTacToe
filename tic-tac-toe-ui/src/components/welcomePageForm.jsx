@@ -14,14 +14,12 @@ function WelcomePageForm() {
     const navigate = useNavigate();
 
     const registerAndNavigate = (userName) => {
-        console.log("client", stompClient);
         websocket.register(stompClient, userName);
         const payload = { state: { userName: userName } };
         navigate('/pool', payload);
     };
 
     const connectToWebSocket = async (userName) => {
-        console.log("connect to web socket called with username : ", userName);
         registerAndNavigate(userName);
     };
 
@@ -75,8 +73,6 @@ function WelcomePageForm() {
 
     const submitToServer = async () => {
         Cookies.set('userName', userDetails.userName);
-        console.log("calling set username", userDetails.userName);
-        console.log("setting username", userDetails.userName);
         await connectToWebSocket(userDetails.userName);
     }
 

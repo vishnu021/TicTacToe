@@ -32,3 +32,4 @@ mvnw.cmd
 node
 tic-tac-toe-ui/build
 src/main/resources/static
+tic-tac-toe-ui/package-lock.json

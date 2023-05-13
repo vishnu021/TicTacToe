@@ -11,17 +11,15 @@ function Parent(props) {
     console.log("loading parent component");
     const initialise = async () => {
         const client = await websocket.initialise().then((client) => {
-            console.log("connected to client : ", client);
             setStompClient(client);
         }).catch((error) => {
             toast.error('Unable to connect');
         });
-
     }
 
     useEffect(() => {
         initialise();
-        return () => { };
+        return () => {};
     }, []);
 
     return (
