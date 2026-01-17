@@ -1,14 +1,11 @@
 package com.vish.game.tictactoe.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class GameStarterDTO {
-    private String userId;
-    private String opponentId;
-    private String roomId;
-}
+/**
+ * Record for game starter configuration.
+ * Immutable data carrier for initiating a game between two players.
+ */
+public record GameStarterDTO(
+    String userId,
+    String opponentId,
+    String roomId
+) {}

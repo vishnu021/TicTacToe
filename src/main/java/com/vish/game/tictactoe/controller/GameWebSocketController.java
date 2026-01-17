@@ -24,7 +24,7 @@ public class GameWebSocketController {
     @SendToUser("/topic/response")
     public UserRegisterDTO register(final UserRegisterDTO userRegisterDTO, final Principal principal) {
         log.debug("Request to register from anonymous user {}, DTO : {}", principal.getName(), userRegisterDTO);
-        userService.register(principal.getName(), userRegisterDTO.getUser());
+        userService.register(principal.getName(), userRegisterDTO.user());
         gameService.attemptToStartGame(principal.getName());
         return userRegisterDTO;
     }

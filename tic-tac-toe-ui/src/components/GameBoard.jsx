@@ -98,7 +98,7 @@ function GameBoard({gameDetails}) {
             };
 
             subscriptionRef.current = stompClient.subscribe(
-                process.env.REACT_APP_SUBSCRIPTION_TOPIC,
+                import.meta.env.VITE_SUBSCRIPTION_TOPIC,
                 gameStepHandler
             );
 

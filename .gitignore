@@ -33,3 +33,4 @@ node
 tic-tac-toe-ui/build
 src/main/resources/static
 tic-tac-toe-ui/package-lock.json
+tic-tac-toe-ui/pnpm-lock.yaml

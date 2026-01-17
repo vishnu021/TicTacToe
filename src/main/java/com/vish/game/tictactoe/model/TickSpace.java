@@ -1,12 +1,11 @@
 package com.vish.game.tictactoe.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor
-public class TickSpace {
-    private int id;
-    private boolean clicked;
-    private boolean crossed;
-}
+/**
+ * Record representing a single cell in the Tic-Tac-Toe board.
+ * Immutable - create new instances for state changes.
+ */
+public record TickSpace(
+    int id,
+    boolean clicked,
+    boolean crossed
+) {}

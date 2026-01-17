@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Form from "./Form";
-import Joi from "joi-browser";
+import Joi from "joi";
 import Cookies from 'js-cookie';
 import websocket from "../services/webSocketService";
 import { useNavigate } from 'react-router-dom';
@@ -30,15 +30,15 @@ function WelcomePageForm() {
         }
     }, []);
 
-    const formSchema = {
+    const formSchema = Joi.object({
         userName: Joi.string().min(3).required().label('Name')
-    }
+    });
 
     const validateProperty = ({name, value}) => {
         const obj = { [name]: value};
-        const schema = {[name]: formSchema[name]}
-        const {error} = Joi.validate(obj, schema);
-        return error ?  error.details[0].message : null;
+        const schema = Joi.object({[name]: formSchema.extract(name)});
+        const {error} = schema.validate(obj);
+        return error ? error.details[0].message : null;
     }
 
     const handleChange = ({currentTarget:input}) => {
@@ -58,8 +58,8 @@ function WelcomePageForm() {
 
     const validate = () => {
         const options = { abortEarly: true };
-        const {error} = Joi.validate(userDetails, formSchema, options);
-        if(!error)  return null;
+        const {error} = formSchema.validate(userDetails, options);
+        if(!error) return null;
         const errors = {};
         for(let item of error.details)
             errors[item.path[0]] = item.message;

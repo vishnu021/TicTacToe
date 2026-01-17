@@ -1,12 +1,21 @@
 spring:
   application:
     name: Tic-Tac-Toe
+  # Enable virtual threads (Java 21 feature)
+  threads:
+    virtual:
+      enabled: true
   web:
     resources:
-      static-locations: "classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/:"
+      static-locations: "classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/"
 
 server:
   port: 80
+  # Use virtual threads for request handling
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
 
 ws:
   tick:
@@ -26,26 +35,38 @@ logging:
     root: WARN
     com.vish.game.tictactoe: DEBUG
   file:
-    path: ttt
+    path: log
     name: log/ttt.log
-    max-size: 5MB
-  pattern:
-    rolling-file-name: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.log"
-    file: "%d{yyyy-MM-dd HH:mm:ssZ} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n"
-    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSSZ}){faint} %clr(${LOG_LEVEL_PATTERN:%5p})\
-              {magenta} %clr(-){faint}%clr([%5.5t]){faint}%clr(%-30.30logger{30}){cyan} %clr(:){faint} %m%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 5MB
+      max-history: 7
 
-# configs for actuator endpoints
+# Actuator endpoints configuration
 management:
-  server.port: ${server.port}
+  server:
+    port: ${server.port}
   endpoint:
-    info.cache.time-to-live: 5s
+    info:
+      cache:
+        time-to-live: 5s
     health:
       show-details: always
-      cache.time-to-live: 5s
-    metrics.enabled: true
+      cache:
+        time-to-live: 5s
+    metrics:
+      enabled: true
     prometheus:
       enabled: true
   endpoints:
-    web.exposure.include: "*"
-    base-path: /actuator
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  # Enable observability features
+  observations:
+    annotations:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

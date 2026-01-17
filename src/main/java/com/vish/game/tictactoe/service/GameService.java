@@ -20,9 +20,9 @@ public class GameService {
     private final Map<String, GameBoard> activeGame = new ConcurrentHashMap<>();
 
     public Optional<GameStepDTO> startGame(GameStarterDTO gameStarterConfig) {
-        String userId = gameStarterConfig.getUserId();
-        String opponentId = gameStarterConfig.getOpponentId();
-        String roomId = gameStarterConfig.getRoomId();
+        String userId = gameStarterConfig.userId();
+        String opponentId = gameStarterConfig.opponentId();
+        String roomId = gameStarterConfig.roomId();
         log.info("Starting game of user ({}){} with opponent ({}){} ", userService.getName(userId), userId,
                 userService.getName(opponentId), opponentId);
 
@@ -38,7 +38,7 @@ public class GameService {
     }
 
     boolean isGameInProgress(GameBoard gameBoard) {
-        return gameBoard.getTickSpaces().stream().anyMatch(TickSpace::isClicked);
+        return gameBoard.getTickSpaces().stream().anyMatch(TickSpace::clicked);
     }
 
     private GameBoard getGameBoard(String userId, String opponentId, String roomId, String gameKey) {

@@ -21,12 +21,12 @@ public final class GameStateHelper {
     public static Optional<String> getWinningPlayerId(GameStepDTO gameStepDTO) {
         List<TickSpace> tickSpaces = gameStepDTO.getBoard().getTickSpaces();
 
-        List<Integer> crossedIds = getTickIds(tickSpaces, TickSpace::isCrossed);
+        List<Integer> crossedIds = getTickIds(tickSpaces, TickSpace::crossed);
         if(isWinningPattern(crossedIds)) {
             return Optional.of(gameStepDTO.getCrossPlayerId());
         }
 
-        List<Integer> circleIds =  getTickIds(tickSpaces, tick -> !tick.isCrossed());
+        List<Integer> circleIds =  getTickIds(tickSpaces, tick -> !tick.crossed());
         if(isWinningPattern(circleIds)) {
             return Optional.of(gameStepDTO.getCirclePlayerId());
         }
@@ -78,8 +78,8 @@ public final class GameStateHelper {
         }
 
         // Count clicked spaces to ensure valid game progression
-        long clickedCount = tickSpaces.stream().filter(TickSpace::isClicked).count();
-        long crossCount = tickSpaces.stream().filter(t -> t.isClicked() && t.isCrossed()).count();
+        long clickedCount = tickSpaces.stream().filter(TickSpace::clicked).count();
+        long crossCount = tickSpaces.stream().filter(t -> t.clicked() && t.crossed()).count();
         long circleCount = clickedCount - crossCount;
 
         // Cross and circle counts should differ by at most 1
@@ -93,9 +93,9 @@ public final class GameStateHelper {
 
     private static List<Integer> getTickIds(final List<TickSpace> tickSpaces, Predicate<TickSpace> tickType) {
         return tickSpaces.stream()
-                .filter(TickSpace::isClicked)
+                .filter(TickSpace::clicked)
                 .filter(tickType)
-                .map(TickSpace::getId)
+                .map(TickSpace::id)
                 .toList();
     }
 
