@@ -10,7 +10,7 @@ function WelcomePageForm() {
 
     const [formErrors, setFormErrors] = useState({})
     const [userDetails, setUserDetails] = useState({userName: ""});
-    const { stompClient, setStompClient } = useContext(StompContext);
+    const { stompClient } = useContext(StompContext);
     const navigate = useNavigate();
 
     const registerAndNavigate = (userName) => {
@@ -28,7 +28,6 @@ function WelcomePageForm() {
         if(myCookieValue) {
             setUserDetails({userName: myCookieValue});
         }
-        return () => {};
     }, []);
 
     const formSchema = {

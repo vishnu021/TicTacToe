@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState, useCallback, useRef} from 'react';
 import websocket from '../services/webSocketService'
 import TickSpaces from "./TickSpaces";
 import CelebrationAnimation from "./CelebrationAnimation";
@@ -13,35 +13,37 @@ function GameBoard({gameDetails}) {
     const [crossPlayerId, setCrossPlayerId] = useState("");
     const [activePlayerId, setActivePlayerId] = useState("");
     const [opponentId, setOpponentId] = useState("");
-    const [gameActive, setGameActive] = useState(true);
+    const [gameActive] = useState(true);
     const [winningPlayer, setWinningPlayer] = useState(null);
-    const {stompClient, setStompClient } = useContext(StompContext);
+    const {stompClient} = useContext(StompContext);
     const { pageId } = useParams();
     const navigate = useNavigate();
+    const subscriptionRef = useRef(null);
+
     const backToPool = () => {
         websocket.register(stompClient, playerName);
         const payload = { state: { userName: playerName } };
         navigate('/pool', payload);
     }
 
-
-    const parseGameDetails = (gameDetails) => {
-        const { playerName, playerId, opponentName, opponentId, board, winningPlayer } = gameDetails;
+    const parseGameDetails = useCallback((details) => {
+        const { playerName, playerId, opponentName, opponentId, board, winningPlayer } = details;
         const {tickSpaces, crossPlayerId, activePlayerId} = board;
         setPlayerName(playerName);
         setPlayerId(playerId);
         setOpponentName(opponentName);
         setOpponentId(opponentId);
         setTickSpaces(tickSpaces);
-        setActivePlayerId(activePlayerId)
-        setCrossPlayerId(crossPlayerId)
+        setActivePlayerId(activePlayerId);
+        setCrossPlayerId(crossPlayerId);
         setWinningPlayer(winningPlayer);
-    }
-    const isCrossTick = () => {
-        return playerId === crossPlayerId;
-    }
+    }, []);
 
-    const sendNextStep = () => {
+    const isCrossTick = useCallback(() => {
+        return playerId === crossPlayerId;
+    }, [playerId, crossPlayerId]);
+
+    const sendNextStep = useCallback((updatedTickSpaces) => {
         const stepPayload = {
             "playerName": playerName,
             "playerId": playerId,
@@ -49,45 +51,64 @@ function GameBoard({gameDetails}) {
             "opponentId": opponentId,
             "board": {
                 "roomId": pageId,
-                "tickSpaces": tickSpaces,
+                "tickSpaces": updatedTickSpaces,
                 "crossPlayerId": crossPlayerId,
                 "activePlayerId": activePlayerId
             }
-        }
-        stompClient.send('/app/step', {}, JSON.stringify(stepPayload));
-    }
+        };
+        stompClient.publish({
+            destination: '/app/step',
+            body: JSON.stringify(stepPayload)
+        });
+    }, [playerName, playerId, opponentName, opponentId, pageId, crossPlayerId, activePlayerId, stompClient]);
 
-    const handleClick = tickSpace =>  {
+    const handleClick = useCallback((tickSpace) => {
         if(activePlayerId === playerId && gameActive && !winningPlayer) {
-            const boardTickSpaces = tickSpaces
-            const index = boardTickSpaces.indexOf(tickSpace);
-            if (!boardTickSpaces[index].clicked) {
-                boardTickSpaces[index].clicked = true;
-                boardTickSpaces[index].crossed = isCrossTick();
-                setTickSpaces(boardTickSpaces)
-                sendNextStep();
+            const index = tickSpaces.findIndex(t => t.id === tickSpace.id);
+            if (index !== -1 && !tickSpaces[index].clicked) {
+                // Create new array with updated tick space (avoid mutation)
+                const updatedTickSpaces = tickSpaces.map((space, i) =>
+                    i === index
+                        ? { ...space, clicked: true, crossed: isCrossTick() }
+                        : space
+                );
+                setTickSpaces(updatedTickSpaces);
+                sendNextStep(updatedTickSpaces);
             }
         }
-    }
+    }, [activePlayerId, playerId, gameActive, winningPlayer, tickSpaces, isCrossTick, sendNextStep]);
 
-    const getTickSpaceClass = () => {
-        console.log(`playerId : ${playerId}, active player : ${activePlayerId}`);
-        if(activePlayerId===playerId) {
-            return "active-player";
-        } else {
-            return "inactive-player";
-        }
-    }
+    const getTickSpaceClass = useCallback(() => {
+        return activePlayerId === playerId ? "active-player" : "inactive-player";
+    }, [activePlayerId, playerId]);
 
-
+    // Parse initial game details
     useEffect(() => {
-        parseGameDetails(gameDetails);
-    }, []);
+        if (gameDetails) {
+            parseGameDetails(gameDetails);
+        }
+    }, [gameDetails, parseGameDetails]);
 
-    const gameStepHandler = (message) => {
-        const response = JSON.parse(message.body);
-        parseGameDetails(response);
-    }
+    // Subscribe to game updates with proper cleanup
+    useEffect(() => {
+        if (stompClient) {
+            const gameStepHandler = (message) => {
+                const response = JSON.parse(message.body);
+                parseGameDetails(response);
+            };
+
+            subscriptionRef.current = stompClient.subscribe(
+                process.env.REACT_APP_SUBSCRIPTION_TOPIC,
+                gameStepHandler
+            );
+
+            return () => {
+                if (subscriptionRef.current) {
+                    subscriptionRef.current.unsubscribe();
+                }
+            };
+        }
+    }, [stompClient, parseGameDetails]);
 
     const getGameCompleteMessage = () => {
         if(winningPlayer) {
@@ -96,27 +117,25 @@ function GameBoard({gameDetails}) {
             else
                 return <p>Better Luck Next Time</p>
         }
-        return <p></p>;
-    }
+        return null;
+    };
+
     const isCrossPlayer = () => {
         return playerId === crossPlayerId;
-    }
+    };
 
     const getNameStyle = () => {
-        const styles = {textAlign: "right"}
-        if(playerId===activePlayerId) {
-            return {...styles,  fontSize: "25", fontWeight: "bold"}
+        const styles = {textAlign: "right"};
+        if(playerId === activePlayerId) {
+            return {...styles, fontSize: "25", fontWeight: "bold"};
         }
         return styles;
-    }
+    };
 
     const getGamePlayMessage = () => {
-        if(playerId===activePlayerId)
-        return "your turn ";
-        else return "";
-    }
+        return playerId === activePlayerId ? "your turn " : "";
+    };
 
-    websocket.subscribeToGame(stompClient, gameStepHandler);
     return (
         <div className="row m-2 game-font">
             <div className="col-md-4 offset-md-4 col-sm-12">

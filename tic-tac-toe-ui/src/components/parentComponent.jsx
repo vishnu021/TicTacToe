@@ -7,10 +7,10 @@ function ParentComponent(props) {
     const navigate = useNavigate();
 
     if(!location || !location.state) {
-        const timeoutId = setTimeout(() => {
+        setTimeout(() => {
             navigate('/');
         }, 500);
-        return;
+        return null;
     }
     return (
         <GameBoard

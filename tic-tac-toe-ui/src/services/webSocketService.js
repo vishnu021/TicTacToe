@@ -1,57 +1,73 @@
-import {toast} from "react-toastify";
+import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import Stomp from "stompjs";
 
-const webSocketEndpoint = process.env.REACT_APP_API_URL;
+// Use origin dynamically - fallback to env variable for development
+const getWebSocketUrl = () => {
+    const wsPath = process.env.REACT_APP_WS_PATH || '/ws';
+    // In production, use the same origin as the page
+    if (process.env.NODE_ENV === 'production') {
+        return `${window.location.origin}${wsPath}`;
+    }
+    // In development, use env variable or default to current origin
+    return process.env.REACT_APP_API_URL || `${window.location.origin}${wsPath}`;
+};
+
 const subscriptionTopic = process.env.REACT_APP_SUBSCRIPTION_TOPIC;
 const startGameTopic = process.env.REACT_APP_GAME_START_TOPIC;
 const registrationTopic = process.env.REACT_APP_REGISTRATION_ENDPOINT;
 
 const initialiseWebsocket = async () => {
-    const socket = new SockJS(webSocketEndpoint);
-    const client = Stomp.over(socket);
-    client.debug = null;
+    const webSocketEndpoint = getWebSocketUrl();
+
+    const client = new Client({
+        webSocketFactory: () => new SockJS(webSocketEndpoint),
+        debug: () => {}, // Disable debug logs
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+    });
+
     await new Promise((resolve, reject) => {
-        client.connect({}, () => resolve(client), (error) => reject(error));
+        client.onConnect = () => resolve(client);
+        client.onStompError = (frame) => {
+            reject(new Error(frame.headers['message'] || 'STOMP error'));
+        };
+        client.onWebSocketError = (event) => {
+            reject(new Error('WebSocket connection error'));
+        };
+        client.activate();
     });
 
     return client;
-}
-
-
+};
 
 const subscribeToTopic = (client, handleGameStart) => {
-    console.log("subscribing to start game topic", new Date());
-    client.subscribe(startGameTopic, (message) => {
+    return client.subscribe(startGameTopic, (message) => {
         const response = JSON.parse(message.body);
-        console.log("starting game now");
         handleGameStart(response);
-    }, (error) => {
-        console.error(`Error subscribing to start game channel :  ${webSocketEndpoint}${startGameTopic}`, error);
-        toast.error('Failed to connect to server');
     });
-}
+};
 
 const subscribeToGame = (client, stepFunction) => {
-    client.subscribe(subscriptionTopic, stepFunction, (error) => {
-        console.error(`Error subscribing to ${subscriptionTopic} channel:`, error);
-        console.error(`Error subscribing to step game channel :  ${webSocketEndpoint}${startGameTopic}`, error);
-        toast.error('Failed to connect to server');
-    });
-}
+    return client.subscribe(subscriptionTopic, stepFunction);
+};
 
 const registerNewUser = (client, userName) => {
     const gameStarterPayload = {
         "user": userName,
         "createNewRoom": false
     };
-    console.log(`Registering new user ${JSON.stringify(gameStarterPayload)} to ${webSocketEndpoint}`);
-    client.send(registrationTopic, {}, JSON.stringify(gameStarterPayload));
-}
+    client.publish({
+        destination: registrationTopic,
+        body: JSON.stringify(gameStarterPayload)
+    });
+};
 
-export default {
+const webSocketService = {
     initialise: initialiseWebsocket,
     subscribe: subscribeToTopic,
     subscribeToGame: subscribeToGame,
     register: registerNewUser
-}
+};
+
+export default webSocketService;

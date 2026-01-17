@@ -19,7 +19,7 @@ function TickSpace({tickSpace, isCrossPlayer}) {
     }
 
     const getSymbol = () => {
-        const {id, crossed, clicked} = tickSpace;
+        const {crossed, clicked} = tickSpace;
         if(clicked) {
             return crossed ?
                 <FontAwesomeIcon className={getCrossColor()} icon={faTimes} size="2x"/>:

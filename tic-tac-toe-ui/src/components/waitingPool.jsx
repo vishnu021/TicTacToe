@@ -1,33 +1,30 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useCallback} from 'react';
 import {useLocation, useNavigate} from "react-router-dom";
 import websocket from "../services/webSocketService";
 import {StompContext} from "./parent";
 
-function WaitingPool(props) {
+function WaitingPool() {
     const location = useLocation();
     const navigate = useNavigate();
-    const { stompClient, setStompClient } = useContext(StompContext);
-    const [gameDetails, setGameDetails] = useState(null);
+    const { stompClient } = useContext(StompContext);
 
-    const handleGameStart = (gameDetails) => {
-        setGameDetails(gameDetails);
-        const {board} = gameDetails;
-        navigate(`/play/${board.roomId}`, {state: gameDetails});
-    }
+    const handleGameStart = useCallback((details) => {
+        const {board} = details;
+        navigate(`/play/${board.roomId}`, {state: details});
+    }, [navigate]);
 
     useEffect(() => {
             if(!location || !location.state) {
-                const timeoutId = setTimeout(() => {
+                setTimeout(() => {
                     navigate('/');
                 }, 500);
                 return;
             }
 
             if(location.state && location.state.userName) {
-                const { userName } = location.state;
                 websocket.subscribe(stompClient, handleGameStart);
             }
-        }
+        }, [location, navigate, stompClient, handleGameStart]
     );
 
     return (

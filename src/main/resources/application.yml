@@ -23,8 +23,8 @@ game:
 
 logging:
   level:
-    root: ERROR
-    com.vish.game.tictaktoe: DEBUG
+    root: WARN
+    com.vish.game.tictactoe: DEBUG
   file:
     path: ttt
     name: log/ttt.log
